@@ -1,0 +1,2 @@
+#' @useDynLib optRANN
+NULL
