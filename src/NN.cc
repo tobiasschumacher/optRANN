@@ -7,7 +7,7 @@
 //------------------------------------------------------------------------------------------------
 extern "C"
 {
-	void get_NN_2Set(double *data, double *query, int *D, int *ND, int *NQ, int *K, double *EPS,
+	void get_NN_2Set(double *data, double *query, int *D, int *ND, int *NQ, int *K, double *metric, double *EPS,
 		int *SEARCHTYPE, int *USEBDTREE, double *SQRAD, int *nn_index, double *distances)
 	{
 	const int d = *D;		// Number of Dimensions for points
@@ -20,6 +20,7 @@ extern "C"
 
 	const double error_bound = *EPS;	// enough said!
 	const double sqRad = *SQRAD;		// Squared Radius for rad search
+	const double d_metric = *metric;
 	
 	ANNkd_tree	*the_tree;	// Search structure
 

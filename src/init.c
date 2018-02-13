@@ -6,10 +6,10 @@
 */
 
 /* .C calls */
-extern void get_NN_2Set(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void get_NN_2Set(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"get_NN_2Set", (DL_FUNC) &get_NN_2Set, 12},
+    {"get_NN_2Set", (DL_FUNC) &get_NN_2Set, 13},
     {NULL, NULL, 0}
 };
 

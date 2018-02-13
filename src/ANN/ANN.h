@@ -330,13 +330,64 @@ const ANNbool	ANN_ALLOW_SELF_MATCH	= ANNtrue;
 //		uncomment the appropriate set of macros below.
 //----------------------------------------------------------------------
 
+class ANN_METRIC
+{
+private:
+  static double ANN_NORM_P;
+  
+public:
+  
+  static double ANN_POW(double x)
+  {
+    if(ANN_NORM_P == 2.0)
+      return x*x;
+    
+    if(ANN_NORM_P == 1.0 || ANN_NORM_P == INFINITY)
+      return fabs(x);
+    
+    return pow(fabs(x), ANN_NORM_P);
+  }
+  
+  static double ANN_ROOT(double x)
+  {
+    if(ANN_NORM_P == 2.0)
+      return std::sqrt(x);
+    
+    if(ANN_NORM_P == 1.0 || ANN_NORM_P == INFINITY)
+      return x;
+    
+    return pow(fabs(x), 1/ANN_NORM_P);
+  }
+  
+  static double ANN_SUM(double x, double y)
+  {
+    if(ANN_NORM_P == INFINITY)
+      return x > y ? x : y;
+    
+    return x + y;
+  }
+  
+  static double ANN_DIFF(double x, double y)
+  {
+    if(ANN_NORM_P == INFINITY)
+      return y;
+    
+    return y - x;
+  }
+  
+  static void SET_P(double p)
+  {
+    ANN_NORM_P = p;
+  }
+};
+
 //----------------------------------------------------------------------
 //	Use the following for the Euclidean norm
 //----------------------------------------------------------------------
-#define ANN_POW(v)			((v)*(v))
-#define ANN_ROOT(x)			std::sqrt(x)
-#define ANN_SUM(x,y)		((x) + (y))
-#define ANN_DIFF(x,y)		((y) - (x))
+#define ANN_POW(v)			ANN_METRIC::ANN_POW(v)    // ((v)*(v))
+#define ANN_ROOT(x)			ANN_METRIC::ANN_ROOT(x)   // std::sqrt(x)
+#define ANN_SUM(x,y)		ANN_METRIC::ANN_SUM(x,y)  // ((x) + (y))
+#define ANN_DIFF(x,y)		ANN_METRIC::ANN_DIFF(x,y) // ((y) - (x))
 
 //----------------------------------------------------------------------
 //	Use the following for the L_1 (Manhattan) norm
