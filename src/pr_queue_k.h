@@ -101,6 +101,8 @@ public:
   mk(max, mk_node(PQ_NULL_KEY, PQ_NULL_INFO))	// initialize with full size and placeholder values
   {}
   
+  virtual ~ANNmin_k()
+  {}
   
   PQKkey ANNmin_key()					// return minimum key
   {
@@ -174,6 +176,9 @@ public:
     tie_ind(0),										// tie index equals zero
     tie_bucket(),									// begin with empty tie bucket
     RNG(unif_rand()*INT_MAX)
+  {}
+  
+  virtual ~ANNmin_k_tb()
   {}
   
   virtual PQKinfo ith_smallest_info(int i)	// info for ith smallest (i in [0..n-1])
