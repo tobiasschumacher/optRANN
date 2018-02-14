@@ -29,10 +29,10 @@
 #include <ANN/ANNperf.h>				// performance evaluation
 
 #include <math.h>
-#include <vector>
-#include <algorithm>
-#include <random>
 #include <R.h>
+#include <vector>
+#include <random>
+#include <algorithm>
 
 //----------------------------------------------------------------------
 //	Basic types
@@ -78,9 +78,9 @@ class ANNmin_k {
     mk_node(PQKkey new_key, PQKinfo	new_info): key(new_key), info(new_info)
     {}
     
-    friend bool operator<(const mk_node& mk1, const mk_node& mk2)
+    inline friend bool operator<(const mk_node& mk1, const mk_node& mk2)
     {
-      return !isNearlyEqual(mk1.key, mk2.key) && mk1.key < mk2.key;
+      return mk1.key < mk2.key && !isNearlyEqual(mk1.key, mk2.key);
     }
   };
   
@@ -91,29 +91,29 @@ class ANNmin_k {
   // tie breaking tools
   int tie_ind;
   std::vector<mk_node> tie_bucket;	//vectors outperform lists for small elements like integers
-  std::mt19937 RNG;					// random number generator for tie-breaking
+  std::mt19937 RNG;
   
 public:
   
   // constructor (given max size)
   ANNmin_k(int max) : 
-  k(max),											// max size
-  n(0),											// no elements in list
-  mk(max, mk_node(PQ_NULL_KEY, PQ_NULL_INFO)),	// initialize with full size and placeholder values
-  tie_ind(0),										// tie index equals zero
-  tie_bucket(),									// begin with empty tie bucket
-  RNG(unif_rand()*INT_MAX)			// seed RNG from R engine
+    k(max),											// max size
+    n(0),											// no elements in list
+    mk(max, mk_node(PQ_NULL_KEY, PQ_NULL_INFO)),	// initialize with full size and placeholder values
+    tie_ind(0),										// tie index equals zero
+    tie_bucket(),									// begin with empty tie bucket
+    RNG(unif_rand()*INT_MAX)
   {}
   
   
   PQKkey ANNmin_key()					// return minimum key
   {
-    return (n > 0 ? mk[0].key : PQ_NULL_KEY);
+    return (n > 0 ? mk.front().key : PQ_NULL_KEY);
   }
   
   PQKkey max_key()					// return maximum key
   {
-    return (n == k ? mk[k - 1].key : PQ_NULL_KEY);
+    return (n == k ? mk.back().key : PQ_NULL_KEY);
   }
   
   PQKkey ith_smallest_key(int i)		// ith smallest key (i in [0..n-1])
@@ -126,7 +126,7 @@ public:
     if (i < n)
     {
       if (i < tie_ind)
-        return mk[i].info;
+          return mk[i].info;
       else if (tie_bucket.size() == 1)
       {
         return tie_bucket.front().info;
@@ -149,17 +149,16 @@ public:
       PQKkey kv,						// key value
       PQKinfo inf)					// item info
   {
-    int pos_ind = k - 1;
     if (isNearlyEqual(mk[k - 1].key, kv))
       tie_bucket.emplace_back(kv, inf);
-    else if (kv > mk[k - 1].key)
+    else if (kv > mk.back().key)
       return;
     else
     {
       mk_node mk_new(kv, inf);
-      if (mk[k - 2] < mk_new)         // also means that tie_ind == k-1
+      if (mk[k-2] < mk_new)         // also means that tie_ind == k-1
       {
-        mk[k - 1] = mk_new;
+        mk.back() = mk_new;
         tie_bucket.clear();
         tie_bucket.push_back(mk_new);
       }
@@ -167,23 +166,22 @@ public:
       {
         // create new node and insert it at its correct place
         auto pos_mknew = std::lower_bound(mk.begin(), mk.begin() + tie_ind, mk_new);
-        pos_ind = pos_mknew - mk.begin();
         mk.insert(pos_mknew, mk_new);
         mk.pop_back();  //vector grows by inserted element, hence pop last element
         
-        // check whether tie index has been at the end of the vector
-        if (tie_ind == k - 1)
-        {
-          // reset tie index and throw all elements starting at this point into the bucket
-          auto pos = std::lower_bound(mk.begin() + pos_ind, mk.end() - 1, mk[k - 1]);
-          tie_ind = pos - mk.begin();
-          tie_bucket = std::vector<mk_node>(pos, mk.end());
-        }
-        else
-        {
-          // if tie index wasn't last index, we just have to increment, as elements with same distance move one step back
-          ++tie_ind;
-        }
+       // check whether tie index has been at the end of the vector
+       if (tie_ind == k - 1)
+       {
+         // reset tie index and throw all elements starting at this point into the bucket
+         auto pos = std::lower_bound(pos_mknew, mk.end() - 1, mk[k - 1]);
+         tie_ind = std::distance(mk.begin(), pos);
+         tie_bucket = std::vector<mk_node>(pos, mk.end());
+       }
+       else
+       {
+         // if tie index wasn't last index, we just have to increment, as elements with same distance move one step back
+         ++tie_ind;
+       }
         
         ANN_FLOP(static_cast<int>(log2(k)))				// increment floating ops
       }

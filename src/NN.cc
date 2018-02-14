@@ -1,5 +1,5 @@
 #include <math.h>    // math routines
-#include "ANN.h"     // ANN library header
+#include "ANN/ANN.h"     // ANN library header
 #include <R.h>       // R header
 
 //------------------------------------------------------------------------------------------------
@@ -21,6 +21,8 @@ extern "C"
 	const double error_bound = *EPS;	// enough said!
 	const double sqRad = *SQRAD;		// Squared Radius for rad search
 	const double d_metric = *metric;
+	
+	ANN_METRIC::SET_P(d_metric);
 	
 	ANNkd_tree	*the_tree;	// Search structure
 

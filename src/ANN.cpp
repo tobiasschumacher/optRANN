@@ -216,7 +216,9 @@ void annMaxPtsVisit(			// set limit on max. pts to visit in search
  Addition by Tobias Schumacher
 --Numeric handling of floating point equality
 ---------------------------------------------------------------------- */
-bool isNearlyEqual(double d1, double d2)
-{
-  return fabs(d1 - d2) <= fmax(EPSILON_ABS, EPSILON_REL*fmax(d1, d2));
-}
+//bool isNearlyEqual(double d1, double d2)
+//{
+//  return d1==d2;// fabs(d1 - d2) <= fmax(EPSILON_ABS, EPSILON_REL*fmax(d1, d2));
+//}
+
+double ANN_METRIC::ANN_NORM_P = 2.0;
