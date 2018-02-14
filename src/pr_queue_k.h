@@ -70,39 +70,35 @@ const PQKinfo	PQ_NULL_INFO = ANN_NULL_IDX;	// nonexistent info value
 //		is used as a simple placeholder and is otherwise ignored.
 //----------------------------------------------------------------------
 
+struct mk_node {					// node in min_k structure
+  PQKkey			key;			// key value
+  PQKinfo			info;			// info field (user defined)
+  
+  mk_node(PQKkey new_key, PQKinfo	new_info): key(new_key), info(new_info)
+  {}
+  
+  inline friend bool operator<(const mk_node& mk1, const mk_node& mk2)
+  {
+    return mk1.key < mk2.key && !isNearlyEqual(mk1.key, mk2.key);
+  }
+};
+
+
 class ANNmin_k {
-  struct mk_node {					// node in min_k structure
-    PQKkey			key;			// key value
-    PQKinfo			info;			// info field (user defined)
-    
-    mk_node(PQKkey new_key, PQKinfo	new_info): key(new_key), info(new_info)
-    {}
-    
-    inline friend bool operator<(const mk_node& mk1, const mk_node& mk2)
-    {
-      return mk1.key < mk2.key && !isNearlyEqual(mk1.key, mk2.key);
-    }
-  };
+
+protected:
   
   int			k;						// max number of keys to store
   int			n;						// number of keys currently active
   std::vector<mk_node>	mk;			// the list itself
   
-  // tie breaking tools
-  int tie_ind;
-  std::vector<mk_node> tie_bucket;	//vectors outperform lists for small elements like integers
-  std::mt19937 RNG;
-  
 public:
   
   // constructor (given max size)
   ANNmin_k(int max) : 
-    k(max),											// max size
-    n(0),											// no elements in list
-    mk(max, mk_node(PQ_NULL_KEY, PQ_NULL_INFO)),	// initialize with full size and placeholder values
-    tie_ind(0),										// tie index equals zero
-    tie_bucket(),									// begin with empty tie bucket
-    RNG(unif_rand()*INT_MAX)
+  k(max),											// max size
+  n(0),											// no elements in list
+  mk(max, mk_node(PQ_NULL_KEY, PQ_NULL_INFO))	// initialize with full size and placeholder values
   {}
   
   
@@ -121,7 +117,66 @@ public:
     return (i < n ? mk[i].key : PQ_NULL_KEY);
   }
   
-  PQKinfo ith_smallest_info(int i)	// info for ith smallest (i in [0..n-1])
+  virtual PQKinfo ith_smallest_info(int i)	// info for ith smallest (i in [0..n-1])
+  {
+    return (i < n ? mk[i].info : PQ_NULL_INFO);
+  }
+  
+  virtual inline void insert(			// insert item (inlined for speed)
+      PQKkey kv,						// key value
+      PQKinfo inf)					// item info
+  {
+    if (kv >= mk.back().key)
+      return;
+    else
+    {
+      mk_node mk_new(kv,inf);
+      
+      // create new node and insert it at its correct place
+      //auto pos_mknew = std::upper_bound(mk.begin(), mk.end(), mk_new);
+      //mk.insert(pos_mknew, mk_new);
+      //mk.pop_back();  //vector grows by inserted element, hence pop last element
+      
+      // linear search & insert has proven to be faster in this context
+      int i = std::min(n,k-1);
+      while (i > 0 && kv < mk[i-1].key) // dont use mk_node::< to avoid time-intensive isNearlyEqual
+      {
+        mk[i] = mk[i-1];
+        --i;
+      }
+      mk[i].key = kv;				// store element here
+      mk[i].info = inf;
+      if (n < k) n++;				// increment number of items
+      ANN_FLOP(k-i+1)				// increment floating ops
+      
+    }
+  }
+  
+};
+
+
+
+
+
+class ANNmin_k_tb : public ANNmin_k 
+{
+  
+  // tie breaking tools
+  int tie_ind;
+  std::vector<mk_node> tie_bucket;	//vectors outperform lists for small elements like integers
+  std::mt19937 RNG;
+  
+public:
+  
+  // constructor (given max size)
+  ANNmin_k_tb(int max) :
+    ANNmin_k(max),
+    tie_ind(0),										// tie index equals zero
+    tie_bucket(),									// begin with empty tie bucket
+    RNG(unif_rand()*INT_MAX)
+  {}
+  
+  virtual PQKinfo ith_smallest_info(int i)	// info for ith smallest (i in [0..n-1])
   {
     if (i < n)
     {
@@ -145,7 +200,7 @@ public:
       return PQ_NULL_INFO;
   }
   
-  inline void insert(			// insert item (inlined for speed)
+  virtual inline void insert(			// insert item (inlined for speed)
       PQKkey kv,						// key value
       PQKinfo inf)					// item info
   {

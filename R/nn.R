@@ -62,8 +62,8 @@
 #'DATA <- data.frame(x1, x2)
 #'nearest <- nn2(DATA,DATA)
 #'@export
-nn2 <- function(data, query=data, k=min(10,nrow(data)), metric = 2, treetype=c("kd","bd"),
-                searchtype=c("standard","priority","radius"),radius=0.0,eps=0.0)
+nn2 <- function(data, query = data, k = min(10,nrow(data)), metric = 2, treetype = c("kd","bd"),
+                searchtype = c("standard","priority","radius"), random_tb = FALSE, radius = 0.0, eps = 0.0)
 {
   dimension	<- ncol(data)
   if(is.null(dimension)) dimension=1L
@@ -111,7 +111,8 @@ nn2 <- function(data, query=data, k=min(10,nrow(data)), metric = 2, treetype=c("
                 as.double(metric),
                 as.double(eps),
                 as.integer(searchtypeInt), 
-                as.integer(treetype=="bd"), 
+                as.integer(treetype == "bd"),
+                as.integer(random_tb == TRUE),
                 as.double(radius*radius),
                 nn.idx   = integer(k*NQ),
                 nn       = double(k*NQ), PACKAGE="optRANN")

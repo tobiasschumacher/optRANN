@@ -342,7 +342,7 @@ public:
     if(ANN_NORM_P == 2.0)
       return x*x;
     
-    if(ANN_NORM_P == 1.0 || ANN_NORM_P == INFINITY)
+    if(ANN_NORM_P == 1.0 || ANN_NORM_P == 0.0)
       return fabs(x);
     
     return pow(fabs(x), ANN_NORM_P);
@@ -353,7 +353,7 @@ public:
     if(ANN_NORM_P == 2.0)
       return std::sqrt(x);
     
-    if(ANN_NORM_P == 1.0 || ANN_NORM_P == INFINITY)
+    if(ANN_NORM_P == 1.0 || ANN_NORM_P == 0.0)
       return x;
     
     return pow(fabs(x), 1/ANN_NORM_P);
@@ -361,7 +361,7 @@ public:
   
   static inline double ANN_SUM(double x, double y)
   {
-    if(ANN_NORM_P == INFINITY)
+    if(ANN_NORM_P == 0.0)
       return x > y ? x : y;
     
     return x + y;
@@ -369,7 +369,7 @@ public:
   
   static inline double ANN_DIFF(double x, double y)
   {
-    if(ANN_NORM_P == INFINITY)
+    if(ANN_NORM_P == 0.0)
       return y;
     
     return y - x;
@@ -548,7 +548,8 @@ public:
       int				k,				// number of near neighbors to return
       ANNidxArray		nn_idx,			// nearest neighbor array (modified)
       ANNdistArray	dd,				// dist to near neighbors (modified)
-      double			eps=0.0			// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0			// error bound
   ) = 0;							// pure virtual (defined elsewhere)
   
   virtual int annkFRSearch(			// approx fixed-radius kNN search
@@ -557,7 +558,8 @@ public:
       int				k = 0,			// number of near neighbors to return
       ANNidxArray		nn_idx = NULL,	// nearest neighbor array (modified)
       ANNdistArray	dd = NULL,		// dist to near neighbors (modified)
-      double			eps=0.0			// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0			// error bound
   ) = 0;							// pure virtual (defined elsewhere)
   
   virtual int theDim() = 0;			// return dimension of space
@@ -603,7 +605,8 @@ public:
       int				k,				// number of near neighbors to return
       ANNidxArray		nn_idx,			// nearest neighbor array (modified)
       ANNdistArray	dd,				// dist to near neighbors (modified)
-      double			eps=0.0);		// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0);		// error bound
   
   int annkFRSearch(					// approx fixed-radius kNN search
       ANNpoint		q,				// query point
@@ -611,7 +614,8 @@ public:
       int				k = 0,			// number of near neighbors to return
       ANNidxArray		nn_idx = NULL,	// nearest neighbor array (modified)
       ANNdistArray	dd = NULL,		// dist to near neighbors (modified)
-      double			eps=0.0);		// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0);		// error bound
   
   int theDim()						// return dimension of space
   { return dim; }
@@ -794,14 +798,16 @@ public:
       int				k,				// number of near neighbors to return
       ANNidxArray		nn_idx,			// nearest neighbor array (modified)
       ANNdistArray	dd,				// dist to near neighbors (modified)
-      double			eps=0.0);		// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0);		// error bound
   
   void annkPriSearch( 				// priority k near neighbor search
       ANNpoint		q,				// query point
       int				k,				// number of near neighbors to return
       ANNidxArray		nn_idx,			// nearest neighbor array (modified)
       ANNdistArray	dd,				// dist to near neighbors (modified)
-      double			eps=0.0);		// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0);		// error bound
   
   int annkFRSearch(					// approx fixed-radius kNN search
       ANNpoint		q,				// the query point
@@ -809,7 +815,8 @@ public:
       int				k,				// number of neighbors to return
       ANNidxArray		nn_idx = NULL,	// nearest neighbor array (modified)
       ANNdistArray	dd = NULL,		// dist to near neighbors (modified)
-      double			eps=0.0);		// error bound
+      bool 				rnd_tb = false,			// indicates whether we do random tie break
+      double			eps = 0.0);		// error bound
   
   int theDim()						// return dimension of space
   { return dim; }
@@ -890,7 +897,7 @@ considered equal
 isNearlyEqual			Determines equality up to a certain threshold, 
 combines relative as well as absolute value criteria
 ---------------------------------------------------------------------- */
-  
+
 const double EPSILON_ABS = 100.0*DBL_EPSILON;
 const double EPSILON_REL = 1E-09;
 

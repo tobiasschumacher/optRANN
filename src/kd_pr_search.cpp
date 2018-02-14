@@ -89,6 +89,7 @@ void ANNkd_tree::annkPriSearch(
 	int					k,				// number of near neighbors to return
 	ANNidxArray			nn_idx,			// nearest neighbor indices (returned)
 	ANNdistArray		dd,				// dist to near neighbors (returned)
+	bool 				rnd_tb,			// indicates whether we do random tie break
 	double				eps)			// error bound (ignored)
 {
 										// max tolerable squared error
@@ -100,7 +101,7 @@ void ANNkd_tree::annkPriSearch(
 	ANNprPts = pts;
 	ANNptsVisited = 0;					// initialize count of points visited
 
-	ANNprPointMK = new ANNmin_k(k);		// create set for closest k points
+	ANNprPointMK = rnd_tb ? new ANNmin_k_tb(k) : new ANNmin_k(k);		// create set for closest k points according to tie break settings
 
 										// distance to root box
 	ANNdist box_dist = annBoxDistance(q,

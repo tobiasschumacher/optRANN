@@ -56,9 +56,10 @@ void ANNbruteForce::annkSearch(			// approx k near neighbor search
 	int					k,				// number of near neighbors to return
 	ANNidxArray			nn_idx,			// nearest neighbor indices (returned)
 	ANNdistArray		dd,				// dist to near neighbors (returned)
+	bool 				rnd_tb,			// indicates whether we do random tie break
 	double				eps)			// error bound (ignored)
 {
-	ANNmin_k mk(k);						// construct a k-limited priority queue
+  ANNmin_k* mk = rnd_tb ? new ANNmin_k_tb(k) : new ANNmin_k(k);		// construct a k-limited priority queue
 	int i;
 
 	if (k > n_pts) {					// too many near neighbors?
@@ -69,12 +70,14 @@ void ANNbruteForce::annkSearch(			// approx k near neighbor search
 										// compute distance to point
 		ANNdist sqDist = annDist(dim, pts[i], q);
 		if (ANN_ALLOW_SELF_MATCH || sqDist != 0)
-			mk.insert(sqDist, i);
+			mk->insert(sqDist, i);
 	}
 	for (i = 0; i < k; i++) {			// extract the k closest points
-		dd[i] = mk.ith_smallest_key(i);
-		nn_idx[i] = mk.ith_smallest_info(i);
+		dd[i] = mk->ith_smallest_key(i);
+		nn_idx[i] = mk->ith_smallest_info(i);
 	}
+	
+	delete mk;
 }
 
 int ANNbruteForce::annkFRSearch(		// approx fixed-radius kNN search
@@ -83,9 +86,10 @@ int ANNbruteForce::annkFRSearch(		// approx fixed-radius kNN search
 	int					k,				// number of near neighbors to return
 	ANNidxArray			nn_idx,			// nearest neighbor array (returned)
 	ANNdistArray		dd,				// dist to near neighbors (returned)
+	bool 				rnd_tb,			// indicates whether we do random tie break
 	double				eps)			// error bound
 {
-	ANNmin_k mk(k);						// construct a k-limited priority queue
+	ANNmin_k* mk = rnd_tb ? new ANNmin_k_tb(k) : new ANNmin_k(k);		// construct a k-limited priority queue
 	int i;
 	int pts_in_range = 0;				// number of points in query range
 										// run every point through queue
@@ -94,16 +98,18 @@ int ANNbruteForce::annkFRSearch(		// approx fixed-radius kNN search
 		ANNdist sqDist = annDist(dim, pts[i], q);
 		if ( (sqDist < sqRad || isNearlyEqual(sqDist, sqRad)) &&			// within radius bound
 			(ANN_ALLOW_SELF_MATCH || sqDist != 0)) { // ...and no self match
-			mk.insert(sqDist, i);
+			mk->insert(sqDist, i);
 			pts_in_range++;
 		}
 	}
 	for (i = 0; i < k; i++) {			// extract the k closest points
 		if (dd != NULL)
-			dd[i] = mk.ith_smallest_key(i);
+			dd[i] = mk->ith_smallest_key(i);
 		if (nn_idx != NULL)
-			nn_idx[i] = mk.ith_smallest_info(i);
+			nn_idx[i] = mk->ith_smallest_info(i);
 	}
+	
+	delete mk;
 
 	return pts_in_range;
 }
