@@ -902,7 +902,10 @@ const double EPSILON_ABS = 100.0*DBL_EPSILON;
 const double EPSILON_REL = 1E-09;
 
 inline bool isNearlyEqual(double d1, double d2){
-  return fabs(d1 - d2) <= fmax(EPSILON_ABS, EPSILON_REL*fmax(fabs(d1), fabs(d2)));
+  double abs_dist = fabs(d1 - d2);
+  
+  //optimize number of comparisons that are performed, ask for the more likely fail first
+  return abs_dist < EPSILON_REL*fmax(fabs(d1), fabs(d2)) && abs_dist < EPSILON_ABS;  
 }
 
 #endif
